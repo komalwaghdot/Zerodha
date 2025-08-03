@@ -18,7 +18,7 @@ export default function CreateTicket() {
     console.log("✅ Signup success:", res.data);
 
     // ✅ Redirect to dashboard on 5000
-    window.location.href = "http://localhost:5000";
+    window.location.href = "https://zerodha-dashboard-lnu0.onrender.com";
 
   } catch (err) {
     console.error(err.response ? err.response.data : err);
