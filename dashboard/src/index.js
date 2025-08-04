@@ -8,7 +8,7 @@ import './index.css';
 import Home  from './components/Home';
 
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:4000';
+axios.defaults.baseURL =  process.env.REACT_APP_API_URL;
 
 
 
