@@ -10,7 +10,7 @@ export default function CreateTicket() {
 
    try {
     const res = await axios.post(
-      "http://localhost:4000/signup",
+      `${process.env.REACT_APP_API_URL}/signup`,
       { username, password },
       { withCredentials: true } // ✅ Important!
     );

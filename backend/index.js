@@ -32,7 +32,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5000"],
+    origin: ["http://localhost:3000"," https://zerodha-frontends.onrender.com","https://zerodha-dashboard-lnu0.onrender.com"],
     credentials: true,
   })
 );
