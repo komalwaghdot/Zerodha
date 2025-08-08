@@ -7,14 +7,14 @@ const Home = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    axios.get('/checkAuth', { withCredentials: true })
+    axios.get(`${process.env.REACT_APP_API_URL}/checkAuth`, { withCredentials: true })
       .then(res => {
         console.log("✅ Authenticated:", res.data);
         setUser(res.data.user);
       })
       .catch(err => {
         console.log("❌ Not authenticated, redirecting...");
-        window.location.href = "http://localhost:3000"; // back to login
+        window.location.href =process.env.REACT_APP_FRONTEND_URL|| "http://localhost:3000"; // back to login
       });
   }, []);
 

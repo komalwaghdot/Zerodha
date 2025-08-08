@@ -18,7 +18,7 @@ import NotFound from './landing_page/NotFound';
 
 // ✅ Axios global config for CORS & cookies
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'https://zerodha-dashboard-lnu0.onrender.com'; // ✅ Your deployed backend URL
+axios.defaults.baseURL = 'https://zerodha-31xy.onrender.com'; // ✅ Your deployed backend URL
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

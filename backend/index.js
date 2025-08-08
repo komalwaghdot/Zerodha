@@ -10,19 +10,20 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ Connect to MongoDB
+// ✅ MongoDB connection
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// ✅ Models
+// ✅ User schema
 const UserSchema = new mongoose.Schema({
   username: String,
   password: String,
 });
 const User = mongoose.model("User", UserSchema);
 
+// ✅ Models
 const { HoldingsModel } = require("./model/HoldingModel");
 const { PositionsModel } = require("./model/PositionsModel");
 const { OrdersModel } = require("./model/OrdersModel");
@@ -30,25 +31,34 @@ const { OrdersModel } = require("./model/OrdersModel");
 // ✅ Middleware
 app.use(express.json());
 
+// 🔥 CORS FIX
 app.use(
   cors({
-    origin: ["http://localhost:3000"," https://zerodha-frontends.onrender.com","https://zerodha-dashboard-lnu0.onrender.com"],
+    origin: [
+      "https://zerodha-frontend-vdk7.onrender.com",
+      "https://zerodha-dashboard-lnu0.onrender.com"
+    ],
     credentials: true,
   })
 );
 
+// ✅ Session setup
 app.use(
   session({
-    secret: "secretcode",
+    secret: "secretcode", // You can also move this to .env for security
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      sameSite: "none", // ✅ Important for cross-origin cookies
+      secure: true,     // ✅ Needed when using HTTPS on Render
+    },
   })
 );
 
+// ✅ Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Passport config
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
@@ -66,20 +76,17 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => done(null, user.id));
-
 passport.deserializeUser(async (id, done) => {
   const user = await User.findById(id);
   done(null, user);
 });
 
-// ✅ Signup with auto-login
+// ✅ Signup Route
 app.post("/signup", async (req, res, next) => {
   const { username, password } = req.body;
 
   const existing = await User.findOne({ username });
-  if (existing) {
-    return res.status(400).json({ message: "Username already exists" });
-  }
+  if (existing) return res.status(400).json({ message: "Username already exists" });
 
   const hashed = await bcrypt.hash(password, 12);
   const user = new User({ username, password: hashed });
@@ -91,12 +98,12 @@ app.post("/signup", async (req, res, next) => {
   });
 });
 
-// ✅ Login route
+// ✅ Login Route
 app.post("/login", passport.authenticate("local"), (req, res) => {
   res.json({ message: "Login successful", user: { username: req.user.username } });
 });
 
-// ✅ Check auth for dashboard
+// ✅ Check Auth Route
 app.get("/checkAuth", (req, res) => {
   if (req.isAuthenticated()) {
     res.json({ authenticated: true, user: { username: req.user.username } });
@@ -105,14 +112,14 @@ app.get("/checkAuth", (req, res) => {
   }
 });
 
-// ✅ Logout
+// ✅ Logout Route
 app.post("/logout", (req, res) => {
   req.logout(() => {
     res.json({ message: "Logged out" });
   });
 });
 
-// ✅ Your existing routes (example holdings, positions, orders)
+// ✅ Holdings, Positions, Orders
 app.get("/allHoldings", async (req, res) => {
   const allHoldings = await HoldingsModel.find({});
   res.json(allHoldings);
@@ -124,18 +131,12 @@ app.get("/allPositions", async (req, res) => {
 });
 
 app.post("/newOrder", async (req, res) => {
-  const newOrder = new OrdersModel({
-    name: req.body.name,
-    qty: req.body.qty,
-    price: req.body.price,
-    mode: req.body.mode,
-  });
-
+  const newOrder = new OrdersModel(req.body);
   await newOrder.save();
   res.send("Order saved!");
 });
 
-// ✅ Start server
+// ✅ Server
 app.listen(PORT, () => {
-  console.log ( `http://localhost:${PORT}`); 
+  console.log(`✅ Server running on: http://localhost:${PORT}`);
 });
