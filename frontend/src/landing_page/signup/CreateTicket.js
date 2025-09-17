@@ -89,7 +89,7 @@ export default function CreateTicket() {
       // Safely handle response
       if (res.status === 200 && res.data?.message === "Signup successful") {
         alert("Signup successful! Redirecting...");
-        window.location.href = "https://zerodha-dashboard-lnu0.onrender.com";
+        window.location.href = "https://zerodha-dashba.onrender.com";
       } else {
         alert("Unexpected response: " + JSON.stringify(res.data));
       }

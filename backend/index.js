@@ -10,9 +10,9 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ MongoDB connection
+// ✅ MongoDB connection (no deprecated options)
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
@@ -38,6 +38,7 @@ app.use(
       "https://zerodha-frontend-vdk7.onrender.com",
       "https://zerodha-dashboard-lnu0.onrender.com"
     ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
@@ -45,12 +46,12 @@ app.use(
 // ✅ Session setup
 app.use(
   session({
-    secret: "secretcode", // You can also move this to .env for security
+    secret: process.env.SESSION_SECRET || "secretcode",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      sameSite: "none", // ✅ Important for cross-origin cookies
-      secure: true,     // ✅ Needed when using HTTPS on Render
+      sameSite: "none", 
+      secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in prod
     },
   })
 );
@@ -137,6 +138,6 @@ app.post("/newOrder", async (req, res) => {
 });
 
 // ✅ Server
-app.listen(PORT, () => {
-  console.log(`✅ Server running on: http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on port: ${PORT}`);
 });
