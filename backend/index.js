@@ -41,6 +41,7 @@ app.use(
   })
 );
 
+
 // ✅ Generate JWT
 const generateToken = (user) => {
   return jwt.sign(

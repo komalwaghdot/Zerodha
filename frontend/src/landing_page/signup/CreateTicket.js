@@ -14,7 +14,8 @@ export default function CreateTicket() {
 
     try {
       // 1️⃣ Signup (backend will return JWT token)
-      const res = await axios.post("/signup", { username, password });
+      const res = await axios.post( `${process.env.REACT_APP_BACKEND_URL}/signup`,
+  { username, password });
       console.log("✅ Signup response:", res.data);
 
       // 2️⃣ Save token in localStorage
