@@ -1,16 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const session = require("express-session");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ MongoDB connection (no deprecated options)
+// ✅ MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
@@ -31,59 +29,42 @@ const { OrdersModel } = require("./model/OrdersModel");
 // ✅ Middleware
 app.use(express.json());
 
-// 🔥 CORS FIX
+// 🔥 CORS FIX for both apps
 app.use(
   cors({
     origin: [
       "https://zerodha-frontend-vdk7.onrender.com",
-      "https://zerodha-dashboard-lnu0.onrender.com"
+      "https://zerodha-dashboard-lnu0.onrender.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-// ✅ Session setup
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "secretcode",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      sameSite: "none", 
-      secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in prod
-    },
-  })
-);
+// ✅ Generate JWT
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+};
 
-// ✅ Passport
-app.use(passport.initialize());
-app.use(passport.session());
+// ✅ Auth Middleware
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) return res.status(401).json({ message: "No token provided" });
 
-passport.use(
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await User.findOne({ username });
-      if (!user) return done(null, false, { message: "Incorrect username." });
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return done(null, false, { message: "Incorrect password." });
-
-      return done(null, user);
-    } catch (err) {
-      return done(err);
-    }
-  })
-);
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser(async (id, done) => {
-  const user = await User.findById(id);
-  done(null, user);
-});
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: "Invalid or expired token" });
+    req.user = user;
+    next();
+  });
+};
 
 // ✅ Signup Route
-app.post("/signup", async (req, res, next) => {
+app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
 
   const existing = await User.findOne({ username });
@@ -93,45 +74,46 @@ app.post("/signup", async (req, res, next) => {
   const user = new User({ username, password: hashed });
   await user.save();
 
-  req.login(user, (err) => {
-    if (err) return next(err);
-    res.json({ message: "Signup successful", user: { username: user.username } });
-  });
+  const token = generateToken(user);
+  res.json({ message: "Signup successful", token });
 });
 
 // ✅ Login Route
-app.post("/login", passport.authenticate("local"), (req, res) => {
-  res.json({ message: "Login successful", user: { username: req.user.username } });
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await User.findOne({ username });
+  if (!user) return res.status(400).json({ message: "Invalid username or password" });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return res.status(400).json({ message: "Invalid username or password" });
+
+  const token = generateToken(user);
+  res.json({ message: "Login successful", token });
 });
 
-// ✅ Check Auth Route
-app.get("/checkAuth", (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({ authenticated: true, user: { username: req.user.username } });
-  } else {
-    res.status(401).json({ authenticated: false });
-  }
+// ✅ Check Auth Route (protected)
+app.get("/checkAuth", authenticateJWT, (req, res) => {
+  res.json({ authenticated: true, user: req.user });
 });
 
-// ✅ Logout Route
+// ✅ Logout Route (client just removes token)
 app.post("/logout", (req, res) => {
-  req.logout(() => {
-    res.json({ message: "Logged out" });
-  });
+  res.json({ message: "Logged out (remove token from client)" });
 });
 
 // ✅ Holdings, Positions, Orders
-app.get("/allHoldings", async (req, res) => {
+app.get("/allHoldings", authenticateJWT, async (req, res) => {
   const allHoldings = await HoldingsModel.find({});
   res.json(allHoldings);
 });
 
-app.get("/allPositions", async (req, res) => {
+app.get("/allPositions", authenticateJWT, async (req, res) => {
   const allPositions = await PositionsModel.find({});
   res.json(allPositions);
 });
 
-app.post("/newOrder", async (req, res) => {
+app.post("/newOrder", authenticateJWT, async (req, res) => {
   const newOrder = new OrdersModel(req.body);
   await newOrder.save();
   res.send("Order saved!");

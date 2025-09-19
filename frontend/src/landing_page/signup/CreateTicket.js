@@ -5,35 +5,23 @@ export default function CreateTicket() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(''); // Error state
+  const [error, setError] = useState('');
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(''); // Reset error
+    setError('');
 
     try {
-      // 1️⃣ Signup
-      const signupRes = await axios.post(
-        "/signup",
-        { username, password },
-        { withCredentials: true }
-      );
-      console.log("✅ Signup response:", signupRes.data);
+      // 1️⃣ Signup (backend will return JWT token)
+      const res = await axios.post("/signup", { username, password });
+      console.log("✅ Signup response:", res.data);
 
-      // 2️⃣ Automatic login
-      const loginRes = await axios.post(
-        "/login",
-        { username, password },
-        { withCredentials: true }
-      );
-      console.log("✅ Login response:", loginRes.data);
+      // 2️⃣ Save token in localStorage
+      localStorage.setItem("token", res.data.token);
 
-      if (loginRes.status === 200) {
-        window.location.href = process.env.REACT_APP_DASHBOARD_URL;
-      } else {
-        setError("Login failed after signup. Please login manually.");
-      }
+      // 3️⃣ Redirect to dashboard
+      window.location.href = process.env.REACT_APP_DASHBOARD_URL;
 
     } catch (err) {
       console.error("❌ Error:", err.response?.data || err.message);

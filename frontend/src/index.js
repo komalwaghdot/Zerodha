@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import axios from 'axios'; // ✅ Import axios for config
+import axios from 'axios';
 
 import './index.css';
 import HomePage from './landing_page/home/Homepage';
@@ -14,10 +14,17 @@ import Navbar from './landing_page/Navbar';
 import Footer from './landing_page/Footer';
 import NotFound from './landing_page/NotFound';
 
-// ✅ Axios global config for CORS & cookies
-axios.defaults.withCredentials = true;
-axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000'; 
-// Use environment variable if set, fallback to localhost for dev
+// ✅ Axios global config
+axios.defaults.baseURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+
+// ✅ Attach JWT to every request if available
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
