@@ -4,7 +4,7 @@ import Dashboard from './Dashboard';
 import TopBar from './TopBar';
 
 const Home = () => {
-  const [user, setUser] = useState(null);
+  /*const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const Home = () => {
 
   if (!user) {
     return <p>❌ Redirecting to signup...</p>;
-  }
+  }*/
 
   return (
     <>
