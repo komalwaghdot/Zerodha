@@ -30,6 +30,14 @@ function Navbar() {
                             <li className="nav-item">
                                 <Link className="nav-link active" aria-current="page" to="/support">Support</Link>
                             </li>
+                            <li className="nav-item">
+  <a 
+    className="nav-link active" 
+    href="https://zerodha-dashboard-lnu0.onrender.com" // replace with your actual Render URL
+  >
+    Dashboard
+  </a>
+</li>
                                
                         </ul>
                             
