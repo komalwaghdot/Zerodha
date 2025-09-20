@@ -5,36 +5,35 @@ import TopBar from './TopBar';
 
 const Home = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ Track loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_API_URL}/checkAuth`,
-          { withCredentials: true }
-        );
-        console.log("✅ Authenticated:", res.data);
-        setUser(res.data.user);
-      } catch (err) {
-        console.log("❌ Not authenticated");
-        window.location.href =
-          process.env.REACT_APP_FRONTEND_URL + "/signup" ||
-          "http://localhost:3000/signup"; // ✅ redirect to signup/login
-      } finally {
-        setLoading(false);
-      }
-    };
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // 🚨 no token, redirect to signup
+      window.location.href = "https://zerodha-frontend-vdk7.onrender.com/signup";
+      return;
+    }
 
-    checkAuth();
+    // ✅ verify token with backend
+    axios
+      .get("/checkAuth", {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  .then((res) => setUser(res.data.user))
+  .catch(() => {
+    localStorage.removeItem("token");
+    window.location.href = "https://zerodha-frontend-vdk7.onrender.com/signup";
+  })
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
-    return <p>🔄 Checking authentication...</p>; // ✅ no false redirect during signup
+    return <p>🔄 Checking authentication...</p>;
   }
 
   if (!user) {
-    return <p>❌ Redirecting to login...</p>;
+    return <p>❌ Redirecting to signup...</p>;
   }
 
   return (

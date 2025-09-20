@@ -33,14 +33,15 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
+       "http://localhost:3000",
       "https://zerodha-frontend-vdk7.onrender.com",
       "https://zerodha-dashboard-lnu0.onrender.com",
+      "https://zerodha-31xy.onrender.com",  // 👈 added
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE","OPTIONS"],
+    credentials: true, // 👈 this is fine
   })
 );
-
 
 // ✅ Generate JWT
 const generateToken = (user) => {
