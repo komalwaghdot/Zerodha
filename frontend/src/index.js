@@ -19,13 +19,13 @@ axios.defaults.baseURL =
   process.env.REACT_APP_BACKEND_URL || "http://localhost:4000";
 
 // ✅ Interceptor to attach token
-axios.interceptors.request.use((config) => {
+/*axios.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+});*/
 
 // ✅ Debug log (check in browser console)
 console.log("axios baseURL:", axios.defaults.baseURL);

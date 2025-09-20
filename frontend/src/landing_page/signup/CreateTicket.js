@@ -7,7 +7,7 @@ const Signup = () => {
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    /*e.preventDefault();
 
     try {
       // ✅ Call backend
@@ -34,7 +34,7 @@ const Signup = () => {
       setMessage(
         error.response?.data?.message || "Error signing up. Please try again."
       );
-    }
+    }*/
   };
 
   return (
